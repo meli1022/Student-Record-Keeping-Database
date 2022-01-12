@@ -1,0 +1,1500 @@
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+/* Open terminal and run MySQL. Then enter pwd */
+
+mysql -u root -p
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+/* Create new Database. Then tell SQL you want to use the new database */
+------ Syntax -----------
+create database database_name;
+use database_name; 
+-------------------------
+
+Ex: 
+create database university;
+use university;
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+/* DDL statements to create tables. Statements to insert data follow in next section */
+
+CREATE TABLE Student (	studentID VARCHAR (10) NOT NULL PRIMARY KEY,	first_name VARCHAR (150) NOT NULL,	last_name VARCHAR (150) NOT NULL,
+	DOB DATE NOT NULL, 
+	residency VARCHAR (150) NOT NULL);
+
+
+CREATE TABLE Graduation (	studentID VARCHAR (10) NOT NULL,	admission_date DATE NOT NULL,	coop VARCHAR (10)  NOT NULL,	credit_totals DECIMAL (4,2),	cGPA DECIMAL (4,2),
+	grad_date DATE,
+	PRIMARY KEY (studentID, admission_date),
+	UNIQUE(studentID, admission_date),
+	FOREIGN KEY (studentID) REFERENCES Student(studentID)
+);
+
+CREATE TABLE specializations (	spec_name VARCHAR (150) NOT NULL PRIMARY KEY,	faculty VARCHAR (150) NOT NULL
+);
+
+CREATE TABLE Designation (	spec_name VARCHAR (150) NOT NULL,
+	studentID VARCHAR (10) NOT NULL,
+	level VARCHAR (150) NOT NULL,
+	start_date DATE NOT NULL,
+	end_date DATE,
+	PRIMARY KEY (spec_name, studentID),
+	UNIQUE(spec_name, studentID),	FOREIGN KEY (studentID) REFERENCES Student(studentID), 
+	FOREIGN KEY (spec_name) REFERENCES specializations(spec_name));
+CREATE TABLE Contact (	studentID VARCHAR (10) NOT NULL PRIMARY KEY,
+	phone VARCHAR (50), 
+	email VARCHAR (150) NOT NULL,
+	address VARCHAR (250) NOT NULL,
+	city VARCHAR (150) NOT NULL,
+	state VARCHAR (150),
+	zip VARCHAR (150) NOT NULL,
+	country VARCHAR (150) NOT NULL,
+	FOREIGN KEY (studentID) REFERENCES Student(studentID)
+);
+
+CREATE TABLE Aid_info (	aidID VARCHAR (10) NOT NULL PRIMARY KEY,
+	name VARCHAR (250), 
+	type VARCHAR (150) NOT NULL,
+	yearly_max_amount int
+);
+
+CREATE TABLE financial_aid (
+	studentID VARCHAR (10) NOT NULL,	aidID VARCHAR (10) NOT NULL,
+	year int NOT NULL, 
+	amount_received int NOT NULL,
+	PRIMARY KEY (studentID, aidID, year),
+	FOREIGN KEY (studentID) REFERENCES Student(studentID),
+	FOREIGN KEY (aidID) REFERENCES Aid_info(aidID)
+);
+
+
+CREATE TABLE Professor (	profID varchar (10) NOT NULL PRIMARY KEY,	first_name varchar (250), 
+	last_name varchar (250));
+
+CREATE TABLE courses (	courseID varchar (10) NOT NULL PRIMARY KEY,	course_name varchar (250), 
+	dept varchar (250), 
+	credits DECIMAL (4,2));
+
+CREATE TABLE offering (	CRN varchar (20) NOT NULL PRIMARY KEY,
+	courseID varchar (10) NOT NULL, 
+	profID varchar (10), 	term varchar(50), 
+	year int, 
+	FOREIGN KEY (courseID) REFERENCES courses(courseID),
+	FOREIGN KEY (profID) REFERENCES Professor(profID));
+
+CREATE TABLE enrolment (	CRN varchar(20) NOT NULL,
+	studentID varchar(10) NOT NULL,
+	grade int, 
+	completion_status varchar (50) NOT NULL, 
+	PRIMARY KEY (CRN, studentID),
+	FOREIGN KEY (CRN) REFERENCES offering(CRN),
+	FOREIGN KEY (studentID) REFERENCES Student(studentID));
+
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+/* After successfully creating tables, load data from csv into table */ 
+
+//steps
+1. log into mysql
+2. type the following: SET GLOBAL local_infile=1;
+2. type the following to then logout: quit 
+3. log back in by doing: mysql --local-infile=1 -u root -p
+4. select your database: use university;
+5. load the data by running a load statement (see sections below)
+
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+** Load statements **
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+** 1: load into student table **
+
+LOAD DATA LOCAL INFILE "/Users/melissa/Desktop/Waterloo/fall 2021/cp363 database 1/databases group project/stud.txt"
+	INTO TABLE Student
+	FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+	LINES TERMINATED BY '\n'; 
+------------------------------------------------------------------------------------------------------------------------
+** 2: load into graduation table **
+
+INSERT INTO Graduation 
+VALUES ('stud123456', '2018-09-01', 'N', 9.5, 3.33, NULL);
+
+
+INSERT INTO Graduation 
+VALUES ('stud132556', '2016-09-01', 'N', 20, 2.58, '2020-05-01');
+
+INSERT INTO Graduation 
+VALUES ('stud195952', '2004-09-01', 'Y', 20.5, 3.67, '2009-09-01');
+
+INSERT INTO Graduation 
+VALUES ('stud177951', '2015-09-01', 'N', 20, 3.82, '2019-05-01');
+
+INSERT INTO Graduation 
+VALUES ('stud132519', '2021-09-01', 'Y', NULL, NULL, NULL);
+
+INSERT INTO Graduation 
+VALUES ('stud117101', '2004-09-01', 'N', 20, 2.95, '2008-05-01');
+	
+INSERT INTO Graduation 
+VALUES ('stud146595',	'2013-09-01', 'N', 22, 3.12, '2017-09-01');
+
+INSERT INTO Graduation 
+VALUES ('stud146595',	'2019-09-01', 'N', 10, 3.68, NULL);
+
+INSERT INTO Graduation
+VALUES ('stud124339', '2021-09-01', 'N', NULL, NULL, NULL);
+
+INSERT INTO Graduation
+VALUES ('stud176522', '2016-09-01', 'Y', 20, 3.65, '2021-09-01');	
+------------------------------------------------------------------------------------------------------------------------
+** 3: load into specialization table **
+
+LOAD DATA LOCAL INFILE "/Users/melissa/Desktop/Waterloo/fall 2021/cp363 database 1/databases group project/spec.txt"
+	INTO TABLE specializations
+	FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+	LINES TERMINATED BY '\n';
+
+------------------------------------------------------------------------------------------------------------------------
+** 4: load into designation table **
+
+INSERT INTO Designation
+VALUES ('mathematics', 'stud176522', 'major', '2016-09-01', '2021-09-01');
+
+INSERT INTO Designation
+VALUES ('computer science', 'stud132556', 'major', '2016-09-01', '2020-05-01');
+
+INSERT INTO Designation
+VALUES ('mathematics', 'stud132556', 'major', '2016-09-01', '2020-05-01');
+
+INSERT INTO Designation
+VALUES ('Religion', 'stud123456', 'major', '2018-09-01', NULL);
+
+INSERT INTO Designation
+VALUES ('philosophy', 'stud123456', 'minor', '2018-09-01', NULL);
+
+INSERT INTO Designation
+VALUES ('civil engineering', 'stud195952', 'major', '2004-09-01', '2009-09-01');
+
+INSERT INTO Designation
+VALUES ('Economics', 'stud177951', 'major', '2015-09-01', '2019-05-01');
+
+INSERT INTO Designation
+VALUES ('computer science', 'stud132519', 'major', '2021-09-01', NULL);
+
+INSERT INTO Designation
+VALUES ('psychology', 'stud117101', 'major', '2004-09-01', '2008-05-01');
+
+INSERT INTO Designation
+VALUES ('biology', 'stud146595', 'major', '2013-09-01', '2017-09-01');
+
+INSERT INTO Designation
+VALUES ('Business administration', 'stud146595', 'minor', '2013-09-01', '2017-09-01');
+
+INSERT INTO Designation
+VALUES ('computer science', 'stud146595', 'major', '2019-09-01', NULL);
+
+INSERT INTO Designation
+VALUES ('software engineering', 'stud124339', 'major', '2021-09-01', NULL);
+
+INSERT INTO Designation
+VALUES ('Business administration', 'stud176522', 'major', '2016-09-01', '2021-09-01');
+------------------------------------------------------------------------------------------------------------------------
+** 5: load into contact table **
+
+LOAD DATA LOCAL INFILE "/Users/melissa/Desktop/Waterloo/fall 2021/cp363 database 1/databases group project/contact.txt"
+	INTO TABLE Contact
+	FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+	LINES TERMINATED BY '\n';
+------------------------------------------------------------------------------------------------------------------------
+** 6: load into aid_info table **
+
+LOAD DATA LOCAL INFILE "/Users/melissa/Desktop/Waterloo/fall 2021/cp363 database 1/databases group project/aid.txt"
+	INTO TABLE Aid_info
+	FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"'
+	LINES TERMINATED BY '\n';
+------------------------------------------------------------------------------------------------------------------------
+** 7: load into financial aid table **
+
+INSERT INTO financial_aid
+VALUES ('stud132519', 'aid0441001', 2021, 6000);
+
+INSERT INTO financial_aid
+VALUES ('stud132519', 'aid0441001', 2021, 6000);
+
+INSERT INTO financial_aid
+VALUES ('stud177951', 'aid0209912', 2015, 4000);
+
+INSERT INTO financial_aid
+VALUES ('stud177951', 'aid0209912', 2016, 4000);
+
+INSERT INTO financial_aid
+VALUES ('stud177951', 'aid0209912', 2017, 4000);
+
+INSERT INTO financial_aid
+VALUES ('stud177951', 'aid0209912', 2018, 4000);
+
+INSERT INTO financial_aid
+VALUES ('stud123456', 'aid0202131', 2018, 3000);
+
+INSERT INTO financial_aid
+VALUES ('stud123456', 'aid0105466', 2019, 6500);
+
+INSERT INTO financial_aid
+VALUES ('stud123456', 'aid0105466', 2020, 7500);
+
+INSERT INTO financial_aid
+VALUES ('stud123456', 'aid0105466', 2021, 7500);
+
+
+INSERT INTO financial_aid
+VALUES ('stud195952', 'aid0202131', 2004, 2000);
+
+INSERT INTO financial_aid
+VALUES ('stud195952', 'aid0107986', 2004, 2500);
+
+------------------------------------------------------------------------------------------------------------------------
+** 8: load into courses table **
+
+INSERT INTO courses VALUES
+    ('comp100','into to programming','computer science',0.5),
+    ('comp101','data structures','computer science',0.5),
+    ('comp201','algorithms','computer science',0.5),
+    ('comp203','operating systems','computer science',0.5),
+    ('comp400','software engineering project','computer science',1),
+    ('comp301','databases','computer science',0.5),
+    ('comp 270','software design ','computer science',0.5),
+    ('math100','calculus 1','mathematics',0.5),
+    ('math101','calculus 2','mathematics',0.5),
+    ('math200','linear algebra','mathematics',0.5),
+    ('math210','probability','mathematics',0.5),
+    ('math220','statistics','mathematics',0.5),
+    ('math230','discrete mathematics','mathematics',0.5),
+    ('math300','euclidean geometry','mathematics',0.5),
+    ('bus100','intro to business','business',0.5),
+    ('bus120','intro to financial accounting','business',0.5),
+    ('bus200','financial management','business',0.5),
+    ('bus230','business law','business',0.5),
+    ('bus400','consumer behavior','business',0.5),
+    ('bus301','risk management','psychology ',0.5),
+    ('psy212','behavioral neuroscience','psychology ',0.5),
+    ('psy220','social psychology','psychology ',0.5),
+    ('psy213','cognition','psychology ',0.5),
+    ('psy410','cognitive development','psychology ',0.5),
+    ('psy450','memory and brain','psychology ',0.5),
+    ('relg201','bible and western culture','religion',0.5),
+    ('relg250','buddhism and hinduism','religion',0.5),
+    ('relg456','theories of religion','religion',0.5),
+    ('relg300','the gospels','religion',0.5),
+    ('relg350','principles of theology','religion',0.5),
+    ('relg400','the writings','religion',0.5),
+    ('relg415','the prophets','religion',0.5),
+    ('econ100','microeconomics','economics',0.5),
+    ('econ102','macroeconomics ','economics',0.5),
+    ('econ306','labour markets and wages','economics',0.5),
+    ('ec310','behavioural economics','economics',0.5),
+    ('ec412','underground economy','economics',0.5),
+    ('ec421','topics in economic policy','economics',0.5),
+    ('biol100','molecular biology','biology ',0.5),
+    ('biol102','cell biology','biology ',0.5),
+    ('biol200','intro to ecology and evolution','biology ',0.5),
+    ('biol212','genetics','biology ',0.5),
+    ('biol301','evolution','biology ',0.5),
+    ('phys101','electromagnetism','physics',0.5),
+    ('phys102','mechanics ','mechanics',0.5),
+    ('mech289','design graphics','mechanical engineering',0.5),
+    ('civ206','dynamics','civil engineering',0.5),
+    ('civ202','solid mechanics','civil engineering',0.5),
+    ('civ311','structural engineering 1','civil engineering',0.5),
+    ('civ312','structural engineering 2','civil engineering',0.5),
+    ('civ400','design project','civil engineering',1),
+    ('civ460','design of steel structures','civil engineering',0.5),
+    ('ecse430','software validation','electrical and software engineering',0.5),
+    ('ecse333','intro to software engineering','electrical and software engineering',0.5),
+    ('phil100','intro to philosophy','philosophy',0.5),
+    ('phil210','intro to deductive logic','philosophy',0.5),
+    ('phil240','intro to moral philosophy','philosophy',0.5),
+    ('phil328','philosophy of mind','philosophy',0.5),
+    ('phil360','philosophy of race','philosophy',0.5),
+    ('phil355','plato','philosophy',0.5),
+    ('phil450','metaethics','philosophy',0.5),
+    ('phil477','ancient moral theory','philosophy',0.5);
+
+------------------------------------------------------------------------------------------------------------------------
+** 9: load into professors table **
+
+INSERT INTO professor VALUES
+    ('prof441511','ian','kuzmish'),
+    ('prof465212','momar','mbomba'),
+    ('prof476018','dimitrios','Illiou'),
+    ('prof432690','tal','arbel'),
+    ('prof484703','Benoit','Bouffard'),
+    ('prof433018','Liza','Adams'),
+    ('prof401501','Brandon','Kenny'),
+    ('prof451337','Andrew','Holland'),
+    ('prof499036','Changhong','Lee'),
+    ('prof410500','martha','campione'),
+    ('prof463522','abe','axelrad'),
+    ('prof450341','teresa','hurley'),
+    ('prof485909','Dwayne','Miller'),
+    ('prof404612','Nancy','morris'),
+    ('prof420231','donna','hill'),
+    ('prof480128','mitchel','fritz'),
+    ('prof454713','ursula','franklin'),
+    ('prof453939','yang','Yi');
+
+
+------------------------------------------------------------------------------------------------------------------------
+** 10: load into offering table **
+
+INSERT INTO offering VALUES
+    ('ec421S20','ec421','prof410500','Spring',2020),
+    ('econ102W19','econ102','prof476018','Winter',2019),
+    ('phil100S19','phil100','prof441511','Spring',2019),
+    ('math101W19','math101','prof499036','Winter',2019),
+    ('ec412F20','ec412','prof420231','Fall',2020),
+    ('econ100S20','econ100','prof480128','Spring',2020),
+    ('biol301W20','biol301','prof480128','Winter',2020),
+    ('civ400F18','civ400','prof484703','Fall',2018),
+    ('bus230F19','bus230','prof410500','Fall',2019),
+    ('phil210W21','phil210','prof485909','Winter',2021),
+    ('phil240W20','phil240','prof485909','Winter',2020),
+    ('mech289W20','mech289','prof453939','Winter',2020),
+    ('comp101F20','comp101','prof476018','Fall',2020),
+    ('relg415F19','relg415','prof453939','Fall',2019),
+    ('civ312S21','civ312','prof432690','Spring',2021),
+    ('phil477F19','phil477','prof465212','Fall',2019),
+    ('math300F18','math300','prof410500','Fall',2018),
+    ('psy450S21','psy450','prof410500','Spring',2021),
+    ('relg201S19','relg201','prof465212','Spring',2019),
+    ('comp400F18','comp400','prof401501','Fall',2018),
+    ('psy220W21','psy220','prof485909','Winter',2021),
+    ('phil328W20','phil328','prof450341','Winter',2020),
+    ('biol200S18','biol200','prof441511','Spring',2018),
+    ('math210W19','math210','prof441511','Winter',2019),
+    ('math220S20','math220','prof450341','Spring',2020),
+    ('biol212S18','biol212','prof499036','Spring',2018),
+    ('math200F21','math200','prof433018','Fall',2021),
+    ('relg400F19','relg400','prof480128','Fall',2019),
+    ('econ100W20','econ100','prof451337','Winter',2020),
+    ('relg415S21','relg415','prof441511','Spring',2021),
+    ('psy212W19','psy212','prof454713','Winter',2019),
+    ('phil477F21','phil477','prof476018','Fall',2021),
+    ('phil100F20','phil100','prof453939','Fall',2020),
+    ('ec421F20','ec421','prof450341','Fall',2020),
+    ('biol301W19','biol301','prof499036','Winter',2019),
+    ('ecse430F20','ecse430','prof441511','Fall',2020),
+    ('civ312S18','civ312','prof441511','Spring',2018),
+    ('psy450S19','psy450','prof401501','Spring',2019),
+    ('bus400S20','bus400','prof441511','Spring',2020),
+    ('bus100S21','bus100','prof454713','Spring',2021),
+    ('phil240S20','phil240','prof453939','Spring',2020),
+    ('civ312W20','civ312','prof453939','Winter',2020),
+    ('civ206W19','civ206','prof499036','Winter',2019),
+    ('biol212S20','biol212','prof432690','Spring',2020),
+    ('comp400W20','comp400','prof476018','Winter',2020),
+    ('civ400S21','civ400','prof410500','Spring',2021),
+    ('psy212S20','psy212','prof420231','Spring',2020),
+    ('bus100F21','bus100','prof454713','Fall',2021),
+    ('phil360W19','phil360','prof484703','Winter',2019),
+    ('civ206S21','civ206','prof451337','Spring',2021),
+    ('civ460F19','civ460','prof484703','Fall',2019),
+    ('math101W18','math101','prof454713','Winter',2018),
+    ('comp100F21','comp100','prof480128','Fall',2021),
+    ('math101S21','math101','prof404612','Spring',2021),
+    ('relg415W19','relg415','prof485909','Winter',2019),
+    ('bus100F20','bus100','prof480128','Fall',2020),
+    ('comp 270W20','comp 270','prof499036','Winter',2020),
+    ('econ102S18','econ102','prof410500','Spring',2018),
+    ('mech289W19','mech289','prof404612','Winter',2019),
+    ('phil355S21','phil355','prof433018','Spring',2021),
+    ('civ206F19','civ206','prof433018','Fall',2019),
+    ('civ460F20','civ460','prof401501','Fall',2020),
+    ('math300S18','math300','prof463522','Spring',2018),
+    ('biol100W18','biol100','prof404612','Winter',2018),
+    ('comp400F21','comp400','prof432690','Fall',2021),
+    ('psy213F19','psy213','prof401501','Fall',2019),
+    ('biol301S21','biol301','prof450341','Spring',2021),
+    ('bus301W21','bus301','prof433018','Winter',2021),
+    ('bus400F18','bus400','prof432690','Fall',2018),
+    ('math210S18','math210','prof476018','Spring',2018),
+    ('math101F20','math101','prof499036','Fall',2020),
+    ('comp203F19','comp203','prof484703','Fall',2019),
+    ('ec421W19','ec421','prof420231','Winter',2019),
+    ('math220S18','math220','prof465212','Spring',2018),
+    ('phil100W20','phil100','prof451337','Winter',2020),
+    ('civ206F20','civ206','prof401501','Fall',2020),
+    ('psy410W21','psy410','prof432690','Winter',2021),
+    ('phil355S18','phil355','prof401501','Spring',2018),
+    ('phys102S18','phys102','prof454713','Spring',2018),
+    ('comp203S21','comp203','prof451337','Spring',2021),
+    ('comp 270S21','comp 270','prof420231','Spring',2021),
+    ('phys101F21','phys101','prof465212','Fall',2021),
+    ('relg350W19','relg350','prof463522','Winter',2019),
+    ('econ102F20','econ102','prof404612','Fall',2020),
+    ('relg400S19','relg400','prof476018','Spring',2019),
+    ('relg300S20','relg300','prof451337','Spring',2020),
+    ('psy213F20','psy213','prof441511','Fall',2020),
+    ('psy450W19','psy450','prof463522','Winter',2019),
+    ('mech289S20','mech289','prof465212','Spring',2020),
+    ('comp201W18','comp201','prof485909','Winter',2018),
+    ('comp400W21','comp400','prof485909','Winter',2021),
+    ('ec412S19','ec412','prof499036','Spring',2019),
+    ('econ306F20','econ306','prof480128','Fall',2020),
+    ('psy212W18','psy212','prof433018','Winter',2018),
+    ('psy450W20','psy450','prof480128','Winter',2020),
+    ('relg300F18','relg300','prof450341','Fall',2018),
+    ('ecse430F19','ecse430','prof420231','Fall',2019),
+    ('math220W21','math220','prof451337','Winter',2021),
+    ('math230F18','math230','prof480128','Fall',2018),
+    ('civ460S20','civ460','prof484703','Spring',2020),
+    ('biol100S18','biol100','prof465212','Spring',2018),
+    ('civ206S19','civ206','prof454713','Spring',2019),
+    ('comp301S21','comp301','prof420231','Spring',2021),
+    ('math100W19','math100','prof433018','Winter',2019),
+    ('civ312F21','civ312','prof441511','Fall',2021),
+    ('biol301F21','biol301','prof410500','Fall',2021),
+    ('biol200W20','biol200','prof441511','Winter',2020),
+    ('math210F21','math210','prof454713','Fall',2021),
+    ('phys102W21','phys102','prof432690','Winter',2021),
+    ('phil210F18','phil210','prof499036','Fall',2018),
+    ('phil477S21','phil477','prof441511','Spring',2021),
+    ('civ311W18','civ311','prof499036','Winter',2018),
+    ('ecse430S21','ecse430','prof484703','Spring',2021),
+    ('econ306F21','econ306','prof401501','Fall',2021),
+    ('phil240F20','phil240','prof420231','Fall',2020),
+    ('ec310W21','ec310','prof463522','Winter',2021),
+    ('bus400W18','bus400','prof499036','Winter',2018),
+    ('bus120F18','bus120','prof451337','Fall',2018),
+    ('phil450S19','phil450','prof410500','Spring',2019),
+    ('mech289W18','mech289','prof433018','Winter',2018),
+    ('math230S21','math230','prof441511','Spring',2021),
+    ('comp203W18','comp203','prof404612','Winter',2018),
+    ('phil210S20','phil210','prof410500','Spring',2020),
+    ('psy220F20','psy220','prof499036','Fall',2020),
+    ('math200F19','math200','prof476018','Fall',2019),
+    ('phys101S21','phys101','prof476018','Spring',2021),
+    ('relg300S18','relg300','prof441511','Spring',2018),
+    ('phil360S21','phil360','prof499036','Spring',2021),
+    ('comp203W20','comp203','prof476018','Winter',2020),
+    ('biol200F19','biol200','prof420231','Fall',2019),
+    ('phil355W21','phil355','prof480128','Winter',2021),
+    ('relg415S19','relg415','prof465212','Spring',2019),
+    ('mech289W21','mech289','prof401501','Winter',2021),
+    ('math100S18','math100','prof432690','Spring',2018),
+    ('civ312W17','civ312','prof450341','Winter',2017),
+    ('phil360F20','phil360','prof476018','Fall',2020),
+    ('ec412W20','ec412','prof499036','Winter',2020),
+    ('math101W20','math101','prof441511','Winter',2020),
+    ('ec412S18','ec412','prof432690','Spring',2018),
+    ('bus200F18','bus200','prof453939','Fall',2018),
+    ('ec421W21','ec421','prof476018','Winter',2021),
+    ('math101F21','math101','prof454713','Fall',2021),
+    ('phys101W20','phys101','prof484703','Winter',2020),
+    ('comp400F19','comp400','prof404612','Fall',2019),
+    ('phil328F19','phil328','prof451337','Fall',2019),
+    ('biol301W18','biol301','prof441511','Winter',2018),
+    ('civ311W19','civ311','prof484703','Winter',2019),
+    ('relg350W20','relg350','prof480128','Winter',2020),
+    ('biol102S18','biol102','prof401501','Spring',2018),
+    ('biol301F18','biol301','prof484703','Fall',2018),
+    ('comp203S20','comp203','prof401501','Spring',2020),
+    ('civ311F20','civ311','prof463522','Fall',2020),
+    ('bus100W20','bus100','prof450341','Winter',2020),
+    ('phil210S18','phil210','prof465212','Spring',2018),
+    ('comp101S20','comp101','prof465212','Spring',2020),
+    ('phil355F21','phil355','prof441511','Fall',2021),
+    ('ec310F19','ec310','prof432690','Fall',2019),
+    ('math100S20','math100','prof454713','Spring',2020),
+    ('bus120W20','bus120','prof404612','Winter',2020),
+    ('biol100W21','biol100','prof404612','Winter',2021),
+    ('bus230W18','bus230','prof451337','Winter',2018),
+    ('bus400W19','bus400','prof465212','Winter',2019),
+    ('comp100F18','comp100','prof476018','Fall',2018),
+    ('civ311F21','civ311','prof485909','Fall',2021),
+    ('relg456F21','relg456','prof433018','Fall',2021),
+    ('psy212F21','psy212','prof453939','Fall',2021),
+    ('psy450S20','psy450','prof450341','Spring',2020),
+    ('phil360F21','phil360','prof484703','Fall',2021),
+    ('psy450F21','psy450','prof410500','Fall',2021),
+    ('relg456S18','relg456','prof499036','Spring',2018),
+    ('civ202W21','civ202','prof401501','Winter',2021),
+    ('math230S19','math230','prof454713','Spring',2019),
+    ('math210F18','math210','prof432690','Fall',2018),
+    ('bus120W21','bus120','prof454713','Winter',2021);
+
+------------------------------------------------------------------------------------------------------------------------
+** 11: load into enrolment table **
+
+INSERT INTO enrolment VALUES
+    ('civ311F21','stud124339',58,'in progress'),
+    ('math100W19','stud123456',89,'in progress'),
+    ('math230S19','stud124339',93,'satisfactory'),
+    ('bus400W18','stud176522',61,'failed'),
+    ('math200F19','stud117101',81,'deferred'),
+    ('comp100F18','stud146595',93,'in progress'),
+    ('phil355S18','stud132519',51,'satisfactory'),
+    ('math210F18','stud132556',37,'withdrew'),
+    ('math101W19','stud195952',18,'withdrew'),
+    ('mech289W20','stud177951',0,'satisfactory'),
+    ('ec421S20','stud146595',92,'deferred'),
+    ('math220S20','stud177951',81,'withdrew'),
+    ('phil100F20','stud132519',0,'in progress'),
+    ('civ206W19','stud132556',40,'failed'),
+    ('civ206S19','stud117101',34,'in progress'),
+    ('bus100W20','stud146595',53,'satisfactory'),
+    ('relg415S19','stud195952',88,'withdrew'),
+    ('phil210W21','stud195952',85,'withdrew'),
+    ('phys102S18','stud117101',41,'satisfactory'),
+    ('psy212W19','stud132519',99,'failed'),
+    ('econ306F20','stud146595',8,'in progress'),
+    ('econ102F20','stud117101',76,'in progress'),
+    ('psy450F21','stud146595',43,'failed'),
+    ('psy213F19','stud176522',86,'withdrew'),
+    ('comp203S21','stud117101',67,'deferred'),
+    ('phil360W19','stud132556',96,'in progress'),
+    ('biol301W20','stud176522',1,'deferred'),
+    ('relg400F19','stud195952',20,'failed'),
+    ('civ206F19','stud132556',72,'in progress'),
+    ('mech289W21','stud117101',29,'failed'),
+    ('math200F21','stud124339',24,'in progress'),
+    ('biol301S21','stud123456',98,'withdrew'),
+    ('ec412S18','stud146595',13,'deferred'),
+    ('comp203W18','stud177951',54,'withdrew'),
+    ('phil240W20','stud195952',22,'in progress'),
+    ('biol301F18','stud195952',87,'failed'),
+    ('civ460S20','stud124339',25,'failed'),
+    ('bus120W21','stud132556',10,'withdrew'),
+    ('bus120W20','stud177951',34,'failed'),
+    ('civ312W20','stud177951',86,'satisfactory'),
+    ('math300S18','stud195952',98,'satisfactory'),
+    ('civ311F20','stud123456',30,'deferred'),
+    ('comp100F21','stud124339',44,'satisfactory'),
+    ('psy450S19','stud123456',65,'withdrew'),
+    ('psy450W19','stud123456',54,'withdrew'),
+    ('mech289W18','stud132556',35,'deferred'),
+    ('phil100S19','stud123456',48,'withdrew'),
+    ('civ312S21','stud132556',78,'withdrew'),
+    ('ec310F19','stud124339',25,'failed'),
+    ('math230F18','stud195952',94,'failed'),
+    ('relg300S18','stud176522',79,'in progress'),
+    ('psy212S20','stud117101',47,'in progress'),
+    ('psy450W20','stud132519',51,'in progress'),
+    ('civ202W21','stud132556',90,'satisfactory'),
+    ('civ311W18','stud195952',27,'failed'),
+    ('relg415W19','stud177951',83,'withdrew'),
+    ('relg415S21','stud195952',56,'deferred'),
+    ('ec421W19','stud124339',82,'failed'),
+    ('bus230W18','stud132556',85,'deferred'),
+    ('comp 270S21','stud132519',18,'in progress'),
+    ('phil328W20','stud123456',96,'in progress'),
+    ('bus100F21','stud195952',97,'satisfactory'),
+    ('bus400W19','stud117101',85,'deferred'),
+    ('bus301W21','stud176522',11,'in progress'),
+    ('phil210S18','stud195952',1,'withdrew'),
+    ('math101S21','stud176522',72,'failed'),
+    ('math210F21','stud124339',42,'satisfactory'),
+    ('phil355F21','stud124339',25,'withdrew'),
+    ('econ100S20','stud124339',14,'withdrew'),
+    ('math101W20','stud132556',34,'in progress'),
+    ('comp400F21','stud146595',43,'withdrew'),
+    ('relg415F19','stud177951',95,'withdrew'),
+    ('psy213F20','stud195952',43,'failed'),
+    ('phil328F19','stud195952',42,'deferred'),
+    ('psy212F21','stud117101',6,'deferred'),
+    ('mech289S20','stud124339',86,'failed'),
+    ('ec412S19','stud132556',66,'satisfactory'),
+    ('econ100W20','stud132519',87,'withdrew'),
+    ('phil477F21','stud177951',68,'satisfactory'),
+    ('psy410W21','stud176522',83,'in progress'),
+    ('comp201W18','stud176522',73,'satisfactory'),
+    ('ec421W21','stud195952',2,'deferred'),
+    ('relg300F18','stud195952',50,'deferred'),
+    ('econ102W19','stud123456',41,'deferred'),
+    ('biol200S18','stud132519',6,'withdrew'),
+    ('math100S18','stud177951',98,'in progress'),
+    ('phil360F20','stud123456',50,'satisfactory'),
+    ('comp 270W20','stud146595',9,'failed'),
+    ('ec412W20','stud124339',16,'deferred'),
+    ('math210W19','stud176522',79,'failed'),
+    ('civ311W19','stud132519',82,'withdrew'),
+    ('relg400S19','stud132556',99,'failed'),
+    ('civ460F20','stud195952',21,'failed'),
+    ('phys101F21','stud176522',37,'failed'),
+    ('psy220F20','stud124339',34,'deferred'),
+    ('phil210F18','stud117101',42,'satisfactory'),
+    ('phil477F19','stud132519',11,'failed'),
+    ('math230S21','stud123456',11,'failed'),
+    ('math300F18','stud124339',79,'deferred'),
+    ('relg456S18','stud124339',44,'withdrew'),
+    ('phil360S21','stud132556',97,'satisfactory'),
+    ('psy220W21','stud177951',50,'failed'),
+    ('civ312S18','stud195952',76,'satisfactory'),
+    ('math220S18','stud195952',67,'failed'),
+    ('biol301W18','stud195952',45,'withdrew'),
+    ('comp101F20','stud195952',40,'deferred'),
+    ('phil240S20','stud177951',37,'in progress'),
+    ('psy450S21','stud146595',87,'satisfactory'),
+    ('psy212W18','stud117101',82,'in progress'),
+    ('bus120F18','stud132556',45,'withdrew'),
+    ('phil240F20','stud177951',59,'deferred'),
+    ('math220W21','stud195952',31,'failed'),
+    ('relg201S19','stud177951',61,'deferred'),
+    ('phys101S21','stud177951',27,'withdrew'),
+    ('bus230F19','stud132519',3,'in progress'),
+    ('phys101W20','stud146595',5,'deferred'),
+    ('comp203F19','stud132556',15,'deferred'),
+    ('relg350W20','stud177951',27,'withdrew'),
+    ('relg456F21','stud124339',99,'satisfactory'),
+    ('relg350W19','stud146595',15,'satisfactory'),
+    ('phil450S19','stud124339',29,'in progress'),
+    ('math100S20','stud177951',8,'satisfactory'),
+    ('phil100W20','stud195952',34,'satisfactory'),
+    ('phil477S21','stud195952',37,'failed'),
+    ('econ102S18','stud195952',66,'withdrew'),
+    ('comp301S21','stud123456',38,'in progress'),
+    ('bus400F18','stud195952',14,'withdrew'),
+    ('biol100W21','stud195952',75,'withdrew'),
+    ('civ206S21','stud195952',37,'in progress'),
+    ('phil355S21','stud146595',63,'satisfactory'),
+    ('math101F20','stud146595',0,'deferred'),
+    ('biol212S18','stud176522',53,'withdrew'),
+    ('comp400F18','stud176522',78,'satisfactory'),
+    ('comp101S20','stud117101',17,'in progress'),
+    ('comp400W20','stud177951',73,'withdrew'),
+    ('ecse430F20','stud146595',69,'satisfactory'),
+    ('ecse430S21','stud132519',82,'withdrew'),
+    ('comp203S20','stud117101',74,'withdrew'),
+    ('comp203W20','stud124339',51,'satisfactory'),
+    ('comp400F19','stud132556',73,'withdrew'),
+    ('phil355W21','stud124339',3,'deferred'),
+    ('ecse430F19','stud132519',69,'satisfactory'),
+    ('bus100F20','stud123456',12,'deferred'),
+    ('math210S18','stud132556',82,'in progress'),
+    ('biol100W18','stud146595',64,'deferred'),
+    ('biol102S18','stud117101',98,'satisfactory'),
+    ('relg300S20','stud123456',44,'withdrew'),
+    ('math101F21','stud123456',3,'in progress'),
+    ('biol212S20','stud195952',44,'satisfactory'),
+    ('econ306F21','stud146595',57,'withdrew'),
+    ('bus400S20','stud195952',37,'deferred'),
+    ('biol100S18','stud124339',34,'satisfactory'),
+    ('biol200F19','stud177951',6,'deferred'),
+    ('mech289W19','stud132556',69,'satisfactory'),
+    ('civ312W17','stud195952',59,'deferred'),
+    ('ec310W21','stud146595',15,'failed'),
+    ('civ400S21','stud132556',85,'failed'),
+    ('ec412F20','stud124339',18,'in progress'),
+    ('phys102W21','stud195952',10,'deferred'),
+    ('civ206F20','stud195952',39,'deferred'),
+    ('comp400W21','stud195952',92,'withdrew'),
+    ('ec421F20','stud132556',63,'failed'),
+    ('civ312F21','stud176522',13,'satisfactory'),
+    ('bus100S21','stud117101',100,'failed'),
+    ('biol301F21','stud195952',11,'deferred'),
+    ('biol200W20','stud124339',71,'failed'),
+    ('bus200F18','stud132556',83,'satisfactory'),
+    ('biol301W19','stud132519',30,'failed'),
+    ('math101W18','stud124339',23,'in progress'),
+    ('phil210S20','stud146595',35,'deferred'),
+    ('phil360F21','stud117101',66,'in progress'),
+    ('civ400F18','stud123456',84,'withdrew'),
+    ('civ460F19','stud177951',23,'withdrew');
+
+
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+* * Test Cases– should be based on requirements * *
+------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+****Test case 1 to test: ”students may re-enrol in university to pursue another degree"****
+----
+QUERY:
+
+SELECT count(studentID), admission_date, grad_date
+FROM Graduation 
+GROUP BY admission_date, grad_date
+HAVING count(studentID)> 1
+ORDER BY admission_date;
+
+----
+TEST RESULT:
++------------------+----------------+-----------+
+| count(studentID) | admission_date | grad_date |
++------------------+----------------+-----------+
+|                2 | 2021-09-01     | NULL      |
++------------------+----------------+-----------+
+
+----
+TEST PASSED
+
+--------------------------------------------------------------------------------
+
+**Test case 2 to test: ”one student may pursue a combo of majors & minors"**
+----
+QUERY:
+
+SELECT studentID, COUNT(studentid)
+FROM designation
+GROUP BY studentID
+HAVING COUNT(studentid)>1;
+
+----
+TEST RESULT:
++------------+------------------+
+| studentID  | COUNT(studentid) |
++------------+------------------+
+| stud123456 |                2 |
+| stud132556 |                2 |
+| stud146595 |                3 |
+| stud176522 |                2 |
++------------+------------------+
+4 rows in set (0.02 sec)
+
+----
+TEST PASSED
+
+--------------------------------------------------------------------------------
+
+**Test case 3 to test: ”many students may pursue the same designation (ex: biology)"**
+
+----
+TEST QUERY:
+
+SELECT d.spec_name, d.level, d.studentID, s.first_name, s.last_name
+FROM Designation d, Student s
+WHERE d.studentID = s.studentID
+ORDER BY d.spec_name;
+
+----
+TEST RESULT:
+
++-------------------------+-------+------------+------------+------------+
+| spec_name               | level | studentID  | first_name | last_name  |
++-------------------------+-------+------------+------------+------------+
+| biology                 | major | stud146595 | Pablo      | Rivas      |
+| Business administration | minor | stud146595 | Pablo      | Rivas      |
+| Business administration | major | stud176522 | Alic       | Wang       |
+| civil engineering       | major | stud195952 | Jolyn      | Imelida    |
+| computer science        | major | stud132519 | Vince      | Oglopoulos |
+| computer science        | major | stud132556 | Alicia     | Cruthers   |
+| computer science        | major | stud146595 | Pablo      | Rivas      |
+| Economics               | major | stud177951 | Riannon    | Tam        |
+| mathematics             | major | stud132556 | Alicia     | Cruthers   |
+| mathematics             | major | stud176522 | Alic       | Wang       |
+| philosophy              | minor | stud123456 | John       | Smith      |
+| psychology              | major | stud117101 | Nyssa      | Hashim     |
+| Religion                | major | stud123456 | John       | Smith      |
+| software engineering    | major | stud124339 | Rahul      | Mehta      |
++-------------------------+-------+------------+------------+------------+
+14 rows in set (0.04 sec)
+
+----
+TEST PASSED
+
+--------------------------------------------------------------------------------
+
+** TEST case 4 to test: foreign keys and relationships between tables **
+  ** this test case includes several tests I ran while creating tables
+  ** to make sure relationships were working how they meant to. **
+
+----------
+Syntax: 
+SELECT T1.column_names, T2.column_names
+FROM table1 T1, table2 T2
+WHERE T1.primarykey = T2.foreignkey
+----------
+
+QUERY:
+
+SELECT *
+FROM graduation 
+NATURAL JOIN student;
+
+----
+TEST RESULT:
++------------+----------------+------+---------------+------+------------+------------+------------+------------+---------------+
+| studentID  | admission_date | coop | credit_totals | cGPA | grad_date  | first_name | last_name  | DOB        | residency     |
++------------+----------------+------+---------------+------+------------+------------+------------+------------+---------------+
+| stud117101 | 2004-09-01     | N    |         20.00 | 2.95 | 2008-05-01 | Nyssa      | Hashim     | 1986-06-01 | domestic      |
+| stud123456 | 2018-09-01     | N    |          9.50 | 3.33 | NULL       | John       | Smith      | 2001-01-01 | international |
+| stud124339 | 2021-09-01     | N    |          NULL | NULL | NULL       | Rahul      | Mehta      | 2003-03-12 | international |
+| stud132519 | 2021-09-01     | Y    |          NULL | NULL | NULL       | Vince      | Oglopoulos | 2003-11-08 | domestic      |
+| stud132556 | 2016-09-01     | N    |         20.00 | 2.58 | 2020-05-01 | Alicia     | Cruthers   | 1998-06-18 | domestic      |
+| stud146595 | 2013-09-01     | N    |         22.00 | 3.12 | 2017-09-01 | Pablo      | Rivas      | 1995-07-11 | international |
+| stud146595 | 2019-09-01     | N    |         10.00 | 3.68 | NULL       | Pablo      | Rivas      | 1995-07-11 | international |
+| stud176522 | 2016-09-01     | Y    |         20.00 | 3.65 | 2021-09-01 | Alic       | Wang       | 1998-02-24 | domestic      |
+| stud177951 | 2015-09-01     | N    |         20.00 | 3.82 | 2019-05-01 | Riannon    | Tam        | 1997-01-07 | international |
+| stud195952 | 2004-09-01     | Y    |         20.50 | 3.67 | 2009-09-01 | Jolyn      | Imelida    | 1985-06-20 | domestic      |
++------------+----------------+------+---------------+------+------------+------------+------------+------------+---------------+
+10 rows in set (0.01 sec)
+----
+TEST PASSED
+
+-
+QUERY:
+
+SELECT *
+FROM designation 
+NATURAL JOIN student;
+----
+TEST RESULT:
+
++------------+-------------------------+-------+------------+------------+------------+------------+------------+---------------+
+| studentID  | spec_name               | level | start_date | end_date   | first_name | last_name  | DOB        | residency     |
++------------+-------------------------+-------+------------+------------+------------+------------+------------+---------------+
+| stud117101 | psychology              | major | 2004-09-01 | 2008-05-01 | Nyssa      | Hashim     | 1986-06-01 | domestic      |
+| stud123456 | philosophy              | minor | 2018-09-01 | NULL       | John       | Smith      | 2001-01-01 | international |
+| stud123456 | Religion                | major | 2018-09-01 | NULL       | John       | Smith      | 2001-01-01 | international |
+| stud124339 | software engineering    | major | 2021-09-01 | NULL       | Rahul      | Mehta      | 2003-03-12 | international |
+| stud132519 | computer science        | major | 2021-09-01 | NULL       | Vince      | Oglopoulos | 2003-11-08 | domestic      |
+| stud132556 | computer science        | major | 2016-09-01 | 2020-05-01 | Alicia     | Cruthers   | 1998-06-18 | domestic      |
+| stud132556 | mathematics             | major | 2016-09-01 | 2020-05-01 | Alicia     | Cruthers   | 1998-06-18 | domestic      |
+| stud146595 | biology                 | major | 2013-09-01 | 2017-09-01 | Pablo      | Rivas      | 1995-07-11 | international |
+| stud146595 | Business administration | minor | 2013-09-01 | 2017-09-01 | Pablo      | Rivas      | 1995-07-11 | international |
+| stud146595 | computer science        | major | 2019-09-01 | NULL       | Pablo      | Rivas      | 1995-07-11 | international |
+| stud176522 | Business administration | major | 2016-09-01 | 2021-09-01 | Alic       | Wang       | 1998-02-24 | domestic      |
+| stud176522 | mathematics             | major | 2016-09-01 | 2021-09-01 | Alic       | Wang       | 1998-02-24 | domestic      |
+| stud177951 | Economics               | major | 2015-09-01 | 2019-05-01 | Riannon    | Tam        | 1997-01-07 | international |
+| stud195952 | civil engineering       | major | 2004-09-01 | 2009-09-01 | Jolyn      | Imelida    | 1985-06-20 | domestic      |
++------------+-------------------------+-------+------------+------------+------------+------------+------------+---------------+
+14 rows in set (0.00 sec)
+
+----
+TEST PASSED
+
+-
+
+QUERY:
+
+SELECT *
+FROM contact 
+NATURAL JOIN student;
+
+----
+TEST RESULT:
+
++------------+--------------------+----------------------------------+---------------------------+-----------+--------------+--------+---------+------------+------------+------------+---------------+
+| studentID  | phone              | email                            | address                   | city      | state        | zip    | country | first_name | last_name  | DOB        | residency     |
++------------+--------------------+----------------------------------+---------------------------+-----------+--------------+--------+---------+------------+------------+------------+---------------+
+| stud117101 | (+1)-289-752-6188  | Nyssa.Hashim@myuniversity.ca     | 24 Trailhead Cres         | Brampton  | Ontario      | L6R3H3 | Canada  | Nyssa      | Hashim     | 1986-06-01 | domestic      |
+| stud123456 | (+1)-717-639-5661  | John.Smith@myuniversity.ca       | 2826 Spring Avenue        | Portland  | Pennsylvania | 97205  | USA     | John       | Smith      | 2001-01-01 | international |
+| stud124339 | (+91)-222-577-5687 | Rahul.Mehta@myuniversity.ca      | 39 N Spatkar Marg Gamdevi | Mumbai    | Maharashtra  | 400083 | India   | Rahul      | Mehta      | 2003-03-12 | international |
+| stud132519 | (+1)-780-456-4797  | Vince.Oglopoulos@myuniversity.ca | 10205 158 Ave NW          | Edmonton  | Alberta      | T5X5E5 | Canada  | Vince      | Oglopoulos | 2003-11-08 | domestic      |
+| stud132556 | (+1)-647-891-6452  | Alicia.Cruthers@myuniversity.ca  | 74 Miles Farm Rd          | Markham   | Ontario      | L3S2A5 | Canada  | Alicia     | Cruthers   | 1998-06-18 | domestic      |
+| stud146595 | (+52)-932-164481   | Pablo.Rivas@myuniversity.ca      | 1064 cp 32330             | Juarez    | Chihuahua    | 32330  | Mexico  | Pablo      | Rivas      | 1995-07-11 | international |
+| stud176522 | (+1)-519-623-4823  | Alic.Wang@myuniversity.ca        | 2 Samuelson St            | Cambridge | Ontario      | N1R1J7 | Canada  | Alic       | Wang       | 1998-02-24 | domestic      |
+| stud177951 | (+1)-315-247-8255  | Riannon.Tam@myuniversity.ca      | 2259 Gandy Street         | Syracuse  | New York     | 13202  | USA     | Riannon    | Tam        | 1997-01-07 | international |
+| stud195952 | (+1)-519-894-8784  | Jolyn.Imelida@myuniversity.ca    | 252 Fergus Ave            | Kitchener | Ontario      | N2A2H5 | Canada  | Jolyn      | Imelida    | 1985-06-20 | domestic      |
++------------+--------------------+----------------------------------+---------------------------+-----------+--------------+--------+---------+------------+------------+------------+---------------+
+
+----
+TEST PASSED
+
+-
+
+QUERY:
+
+SELECT *
+FROM financial_aid 
+NATURAL JOIN student;
+
+----
+TEST RESULT:
+
++------------+------------+------+-----------------+------------+------------+------------+---------------+
+| studentID  | aidID      | year | amount_received | first_name | last_name  | DOB        | residency     |
++------------+------------+------+-----------------+------------+------------+------------+---------------+
+| stud123456 | aid0105466 | 2019 |            6500 | John       | Smith      | 2001-01-01 | international |
+| stud123456 | aid0105466 | 2020 |            7500 | John       | Smith      | 2001-01-01 | international |
+| stud123456 | aid0105466 | 2021 |            7500 | John       | Smith      | 2001-01-01 | international |
+| stud123456 | aid0202131 | 2018 |            3000 | John       | Smith      | 2001-01-01 | international |
+| stud132519 | aid0107986 | 2021 |            1300 | Vince      | Oglopoulos | 2003-11-08 | domestic      |
+| stud132519 | aid0441001 | 2021 |            6000 | Vince      | Oglopoulos | 2003-11-08 | domestic      |
+| stud177951 | aid0209912 | 2015 |            4000 | Riannon    | Tam        | 1997-01-07 | international |
+| stud177951 | aid0209912 | 2016 |            4000 | Riannon    | Tam        | 1997-01-07 | international |
+| stud177951 | aid0209912 | 2017 |            4000 | Riannon    | Tam        | 1997-01-07 | international |
+| stud177951 | aid0209912 | 2018 |            4000 | Riannon    | Tam        | 1997-01-07 | international |
+| stud195952 | aid0107986 | 2004 |            2500 | Jolyn      | Imelida    | 1985-06-20 | domestic      |
+| stud195952 | aid0202131 | 2004 |            2000 | Jolyn      | Imelida    | 1985-06-20 | domestic      |
++------------+------------+------+-----------------+------------+------------+------------+---------------+
+12 rows in set (0.02 sec)
+------------------------------------------------------------------------------------------------------------------------
+
+----
+TEST PASSED
+
+--------------------------------------------------------------------------------
+
+****TEST 5: UNIQUE CONSTRAINT FOR PRIMARY KEYS****
+
+----
+QUERY:
+INSERT INTO Student VALUES ('stud123456', 'Peter', 'Kravvy', '2009-01-01', 'international');
+----
+TEST RESULT:
+ERROR 1062 (23000): Duplicate entry 'stud123456' for key 'student.PRIMARY'
+----
+TEST PASSED
+
+-
+QUERY: 
+INSERT INTO aid_info VALUES ('aid0107986', 'OSAP', 'loan', NULL);
+----
+TEST RESULT:
+ERROR 1062 (23000): Duplicate entry 'aid0107986' for key 'aid_info.PRIMARY'
+----
+TEST PASSED
+
+QUERY: 
+INSERT INTO contact VALUES ('stud123456', '111', 'test@test.com', '123 test lane', 'test', 'ontario', 'T1T1T1', 'Canada');
+----
+TEST RESULT:
+ERROR 1062 (23000): Duplicate entry 'stud123456' for key 'contact.PRIMARY'
+----
+TEST PASSED
+
+--------------------------------------------------------------------------------
+****TEST CASE 5: VERIFYING TABLE PROPERTIES*****
+
+----
+QUERY:
+DESCRIBE Student;
+----
+TEST RESULT:
++------------+--------------+------+-----+---------+-------+
+| Field      | Type         | Null | Key | Default | Extra |
++------------+--------------+------+-----+---------+-------+
+| studentID  | varchar(10)  | NO   | PRI | NULL    |       |
+| first_name | varchar(150) | NO   |     | NULL    |       |
+| last_name  | varchar(150) | NO   |     | NULL    |       |
+| DOB        | date         | NO   |     | NULL    |       |
+| residency  | varchar(150) | NO   |     | NULL    |       |
++------------+--------------+------+-----+---------+-------+
+5 rows in set (0.07 sec)
+----
+TEST PASSED
+
+-
+QUERY:
+DESCRIBE specializations;
+----
+TEST RESULT:
++-----------+--------------+------+-----+---------+-------+
+| Field     | Type         | Null | Key | Default | Extra |
++-----------+--------------+------+-----+---------+-------+
+| spec_name | varchar(150) | NO   | PRI | NULL    |       |
+| faculty   | varchar(150) | NO   |     | NULL    |       |
++-----------+--------------+------+-----+---------+-------+
+2 rows in set (0.01 sec)
+----
+TEST PASSED
+
+-
+QUERY:
+DESCRIBE graduation;
+----
+TEST RESULT:
++----------------+--------------+------+-----+---------+-------+
+| Field          | Type         | Null | Key | Default | Extra |
++----------------+--------------+------+-----+---------+-------+
+| studentID      | varchar(10)  | NO   | PRI | NULL    |       |
+| admission_date | date         | NO   | PRI | NULL    |       |
+| coop           | varchar(10)  | NO   |     | NULL    |       |
+| credit_totals  | decimal(4,2) | YES  |     | NULL    |       |
+| cGPA           | decimal(4,2) | YES  |     | NULL    |       |
+| grad_date      | date         | YES  |     | NULL    |       |
++----------------+--------------+------+-----+---------+-------+
+6 rows in set (0.01 sec)
+----
+TEST PASSED
+
+-
+QUERY:
+DESCRIBE financial_aid;
+----
+TEST RESULT:
++-----------------+-------------+------+-----+---------+-------+
+| Field           | Type        | Null | Key | Default | Extra |
++-----------------+-------------+------+-----+---------+-------+
+| studentID       | varchar(10) | NO   | PRI | NULL    |       |
+| aidID           | varchar(10) | NO   | PRI | NULL    |       |
+| year            | int         | NO   | PRI | NULL    |       |
+| amount_received | int         | NO   |     | NULL    |       |
++-----------------+-------------+------+-----+---------+-------+
+4 rows in set (0.01 sec)
+----
+TEST PASSED
+
+-
+QUERY:
+DESCRIBE designation;
+----
+TEST RESULT:
++------------+--------------+------+-----+---------+-------+
+| Field      | Type         | Null | Key | Default | Extra |
++------------+--------------+------+-----+---------+-------+
+| spec_name  | varchar(150) | NO   | PRI | NULL    |       |
+| studentID  | varchar(10)  | NO   | PRI | NULL    |       |
+| level      | varchar(150) | NO   |     | NULL    |       |
+| start_date | date         | NO   |     | NULL    |       |
+| end_date   | date         | YES  |     | NULL    |       |
++------------+--------------+------+-----+---------+-------+
+5 rows in set (0.00 sec)
+----
+TEST PASSED
+
+-
+QUERY:
+DESCRIBE contact;
+----
+TEST RESULT:
++-----------+--------------+------+-----+---------+-------+
+| Field     | Type         | Null | Key | Default | Extra |
++-----------+--------------+------+-----+---------+-------+
+| studentID | varchar(10)  | NO   | PRI | NULL    |       |
+| phone     | varchar(50)  | YES  |     | NULL    |       |
+| email     | varchar(150) | NO   |     | NULL    |       |
+| address   | varchar(250) | NO   |     | NULL    |       |
+| city      | varchar(150) | NO   |     | NULL    |       |
+| state     | varchar(150) | YES  |     | NULL    |       |
+| zip       | varchar(150) | NO   |     | NULL    |       |
+| country   | varchar(150) | NO   |     | NULL    |       |
++-----------+--------------+------+-----+---------+-------+
+8 rows in set (0.01 sec)
+----
+TEST PASSED
+
+-
+QUERY:
+DESCRIBE aid_info;
+----
+TEST RESULT:
++-------------------+--------------+------+-----+---------+-------+
+| Field             | Type         | Null | Key | Default | Extra |
++-------------------+--------------+------+-----+---------+-------+
+| aidID             | varchar(10)  | NO   | PRI | NULL    |       |
+| name              | varchar(250) | YES  |     | NULL    |       |
+| type              | varchar(150) | NO   |     | NULL    |       |
+| yearly_max_amount | int          | YES  |     | NULL    |       |
++-------------------+--------------+------+-----+---------+-------+
+4 rows in set (0.01 sec)
+----
+TEST PASSED
+
+QUERY:
+DESCRIBE professor;
+----
+TEST RESULT:
++------------+--------------+------+-----+---------+-------+
+| Field      | Type         | Null | Key | Default | Extra |
++------------+--------------+------+-----+---------+-------+
+| profID     | varchar(10)  | NO   | PRI | NULL    |       |
+| first_name | varchar(250) | YES  |     | NULL    |       |
+| last_name  | varchar(250) | YES  |     | NULL    |       |
++------------+--------------+------+-----+---------+-------+
+3 rows in set (0.01 sec)
+----
+TEST PASSED
+
+QUERY:
+DESCRIBE aid_info;
+----
+TEST RESULT:
++-------------+--------------+------+-----+---------+-------+
+| Field       | Type         | Null | Key | Default | Extra |
++-------------+--------------+------+-----+---------+-------+
+| courseID    | varchar(10)  | NO   | PRI | NULL    |       |
+| course_name | varchar(250) | YES  |     | NULL    |       |
+| dept        | varchar(250) | YES  |     | NULL    |       |
+| credits     | decimal(4,2) | YES  |     | NULL    |       |
++-------------+--------------+------+-----+---------+-------+
+4 rows in set (0.01 sec)
+----
+TEST PASSED
+
+QUERY:
+DESCRIBE aid_info;
+----
+TEST RESULT:
++-------------------+-------------+------+-----+---------+-------+
+| Field             | Type        | Null | Key | Default | Extra |
++-------------------+-------------+------+-----+---------+-------+
+| CRN               | varchar(20) | NO   | PRI | NULL    |       |
+| studentID         | varchar(10) | NO   | PRI | NULL    |       |
+| grade             | int         | YES  |     | NULL    |       |
+| completion_status | varchar(50) | NO   |     | NULL    |       |
++-------------------+-------------+------+-----+---------+-------+
+4 rows in set (0.01 sec)
+----
+TEST PASSED
+
+--------------------------------------------------------------------------------
+
+**Test case 6 to test: "may receive multiple scholarships"**
+----
+QUERY:
+
+SELECT studentID, COUNT(studentid)
+FROM financial_aid
+GROUP BY studentID
+HAVING COUNT(studentid)>1;
+
+----
+TEST RESULT:
++------------+------------------+
+| studentID  | COUNT(studentid) |
++------------+------------------+
+| stud123456 |                4 |
+| stud132519 |                2 |
+| stud177951 |                4 |
+| stud195952 |                2 |
++------------+------------------+
+4 rows in set (0.01 sec)
+
+----
+TEST PASSED
+
+--------------------------------------------------------------------------------
+
+**Test case 7 : "identify students who have received scholarships"**
+----
+QUERY:
+
+SELECT student.first_name, student.last_name, financial_aid.amount_received
+FROM student
+INNER JOIN financial_aid ON financial_aid.studentid = student.studentid
+ORDER BY student.studentID;
+
+----
+TEST RESULT:
++------------+------------+-----------------+
+| first_name | last_name  | amount_received |
++------------+------------+-----------------+
+| John       | Smith      |            6500 |
+| John       | Smith      |            7500 |
+| John       | Smith      |            7500 |
+| John       | Smith      |            3000 |
+| Vince      | Oglopoulos |            1300 |
+| Vince      | Oglopoulos |            6000 |
+| Riannon    | Tam        |            4000 |
+| Riannon    | Tam        |            4000 |
+| Riannon    | Tam        |            4000 |
+| Riannon    | Tam        |            4000 |
+| Jolyn      | Imelida    |            2500 |
+| Jolyn      | Imelida    |            2000 |
++------------+------------+-----------------+
+12 rows in set (0.01 sec)
+
+----
+TEST PASSED
+
+--------------------------------------------------------------------------------
+
+**Test case 8 : "students who received < 50 grade failed"**
+----
+QUERY:
+
+SELECT grade, completion_status
+FROM enrolment
+WHERE grade < 50 AND completion_status = 'satisfactory'
+ORDER BY grade;
+
+----
+TEST RESULT:
++-------+-------------------+
+| grade | completion_status |
++-------+-------------------+
+|     0 | satisfactory      |
+|     8 | satisfactory      |
+|    13 | satisfactory      |
+|    15 | satisfactory      |
+|    34 | satisfactory      |
+|    34 | satisfactory      |
+|    41 | satisfactory      |
+|    42 | satisfactory      |
+|    42 | satisfactory      |
+|    44 | satisfactory      |
+|    44 | satisfactory      |
++-------+-------------------+
+11 rows in set (0.01 sec)
+
+----
+TEST FAILED
+----
+
+SOLUTION:
+UPDATE enrolment
+SET col = failed
+WHERE col = satisfactory AND grade < 50;
+
+--------------------------------------------------------------------------------
+
+**Test case 9: "students who received > 50 grade passed"**
+----
+QUERY:
+
+SELECT grade, completion_status
+FROM enrolment
+WHERE grade > 50 AND completion_status = 'failed'
+ORDER BY grade;
+
+----
+TEST RESULT:
++-------+-------------------+
+| grade | completion_status |
++-------+-------------------+
+|    61 | failed            |
+|    63 | failed            |
+|    67 | failed            |
+|    71 | failed            |
+|    72 | failed            |
+|    79 | failed            |
+|    82 | failed            |
+|    85 | failed            |
+|    86 | failed            |
+|    87 | failed            |
+|    94 | failed            |
+|    99 | failed            |
+|    99 | failed            |
+|   100 | failed            |
++-------+-------------------+
+14 rows in set (0.00 sec)
+
+----
+TEST FAILED
+----
+
+SOLUTION:
+UPDATE enrolment
+SET col = satisfactory
+WHERE col = failed AND grade > 50;
+
+--------------------------------------------------------------------------------
+
+**Test case 10: "generate a list of which course each professor is teaching"**
+**Test case 10A: "confirm that one professor can teach multiple courses"**
+----
+QUERY:
+
+SELECT professor.first_name, professor.last_name, courses.course_name
+FROM professor
+INNER JOIN offering ON offering.profID = professor.profID
+INNER JOIN courses ON courses.courseID = offering.courseID
+ORDER BY professor.first_name;
+
+----
++------------+-----------+--------------------------------+
+| first_name | last_name | course_name                    |
++------------+-----------+--------------------------------+
+| abe        | axelrad   | structural engineering 1       |
+| abe        | axelrad   | behavioural economics          |
+| abe        | axelrad   | euclidean geometry             |
+| abe        | axelrad   | memory and brain               |
+| abe        | axelrad   | principles of theology         |
+| Andrew     | Holland   | intro to financial accounting  |
+| Andrew     | Holland   | business law                   |
+| Andrew     | Holland   | dynamics                       |
+| Andrew     | Holland   | operating systems              |
+| Andrew     | Holland   | microeconomics                 |
+| Andrew     | Holland   | statistics                     |
+| Andrew     | Holland   | intro to philosophy            |
+| Andrew     | Holland   | philosophy of mind             |
+| Andrew     | Holland   | the gospels                    |
+| Benoit     | Bouffard  | evolution                      |
+| Benoit     | Bouffard  | structural engineering 1       |
+| Benoit     | Bouffard  | design project                 |
+| Benoit     | Bouffard  | design of steel structures     |
+| Benoit     | Bouffard  | design of steel structures     |
+| Benoit     | Bouffard  | operating systems              |
+| Benoit     | Bouffard  | software validation            |
+| Benoit     | Bouffard  | philosophy of race             |
+| Benoit     | Bouffard  | philosophy of race             |
+| Benoit     | Bouffard  | electromagnetism               |
+| Brandon    | Kenny     | cell biology                   |
+| Brandon    | Kenny     | solid mechanics                |
+| Brandon    | Kenny     | dynamics                       |
+| Brandon    | Kenny     | design of steel structures     |
+| Brandon    | Kenny     | operating systems              |
+| Brandon    | Kenny     | software engineering project   |
+| Brandon    | Kenny     | labour markets and wages       |
+| Brandon    | Kenny     | design graphics                |
+| Brandon    | Kenny     | plato                          |
+| Brandon    | Kenny     | cognition                      |
+| Brandon    | Kenny     | memory and brain               |
+| Changhong  | Lee       | genetics                       |
+| Changhong  | Lee       | evolution                      |
+| Changhong  | Lee       | consumer behavior              |
+| Changhong  | Lee       | dynamics                       |
+| Changhong  | Lee       | structural engineering 1       |
+| Changhong  | Lee       | software design                |
+| Changhong  | Lee       | underground economy            |
+| Changhong  | Lee       | underground economy            |
+| Changhong  | Lee       | calculus 2                     |
+| Changhong  | Lee       | calculus 2                     |
+| Changhong  | Lee       | intro to deductive logic       |
+| Changhong  | Lee       | philosophy of race             |
+| Changhong  | Lee       | social psychology              |
+| Changhong  | Lee       | theories of religion           |
+| dimitrios  | Illiou    | into to programming            |
+| dimitrios  | Illiou    | data structures                |
+| dimitrios  | Illiou    | operating systems              |
+| dimitrios  | Illiou    | software engineering project   |
+| dimitrios  | Illiou    | topics in economic policy      |
+| dimitrios  | Illiou    | macroeconomics                 |
+| dimitrios  | Illiou    | linear algebra                 |
+| dimitrios  | Illiou    | probability                    |
+| dimitrios  | Illiou    | philosophy of race             |
+| dimitrios  | Illiou    | ancient moral theory           |
+| dimitrios  | Illiou    | electromagnetism               |
+| dimitrios  | Illiou    | the writings                   |
+| donna      | hill      | intro to ecology and evolution |
+| donna      | hill      | software design                |
+| donna      | hill      | databases                      |
+| donna      | hill      | underground economy            |
+| donna      | hill      | topics in economic policy      |
+| donna      | hill      | software validation            |
+| donna      | hill      | intro to moral philosophy      |
+| donna      | hill      | behavioral neuroscience        |
+| Dwayne     | Miller    | structural engineering 1       |
+| Dwayne     | Miller    | algorithms                     |
+| Dwayne     | Miller    | software engineering project   |
+| Dwayne     | Miller    | intro to deductive logic       |
+| Dwayne     | Miller    | intro to moral philosophy      |
+| Dwayne     | Miller    | social psychology              |
+| Dwayne     | Miller    | the prophets                   |
+| ian        | kuzmish   | intro to ecology and evolution |
+| ian        | kuzmish   | intro to ecology and evolution |
+| ian        | kuzmish   | evolution                      |
+| ian        | kuzmish   | consumer behavior              |
+| ian        | kuzmish   | structural engineering 2       |
+| ian        | kuzmish   | structural engineering 2       |
+| ian        | kuzmish   | software validation            |
+| ian        | kuzmish   | calculus 2                     |
+| ian        | kuzmish   | probability                    |
+| ian        | kuzmish   | discrete mathematics           |
+| ian        | kuzmish   | intro to philosophy            |
+| ian        | kuzmish   | plato                          |
+| ian        | kuzmish   | ancient moral theory           |
+| ian        | kuzmish   | cognition                      |
+| ian        | kuzmish   | the gospels                    |
+| ian        | kuzmish   | the prophets                   |
+| Liza       | Adams     | risk management                |
+| Liza       | Adams     | dynamics                       |
+| Liza       | Adams     | calculus 1                     |
+| Liza       | Adams     | linear algebra                 |
+| Liza       | Adams     | design graphics                |
+| Liza       | Adams     | plato                          |
+| Liza       | Adams     | behavioral neuroscience        |
+| Liza       | Adams     | theories of religion           |
+| martha     | campione  | evolution                      |
+| martha     | campione  | business law                   |
+| martha     | campione  | design project                 |
+| martha     | campione  | topics in economic policy      |
+| martha     | campione  | macroeconomics                 |
+| martha     | campione  | euclidean geometry             |
+| martha     | campione  | intro to deductive logic       |
+| martha     | campione  | metaethics                     |
+| martha     | campione  | memory and brain               |
+| martha     | campione  | memory and brain               |
+| mitchel    | fritz     | evolution                      |
+| mitchel    | fritz     | intro to business              |
+| mitchel    | fritz     | into to programming            |
+| mitchel    | fritz     | microeconomics                 |
+| mitchel    | fritz     | labour markets and wages       |
+| mitchel    | fritz     | discrete mathematics           |
+| mitchel    | fritz     | plato                          |
+| mitchel    | fritz     | memory and brain               |
+| mitchel    | fritz     | principles of theology         |
+| mitchel    | fritz     | the writings                   |
+| momar      | mbomba    | molecular biology              |
+| momar      | mbomba    | consumer behavior              |
+| momar      | mbomba    | data structures                |
+| momar      | mbomba    | statistics                     |
+| momar      | mbomba    | design graphics                |
+| momar      | mbomba    | intro to deductive logic       |
+| momar      | mbomba    | ancient moral theory           |
+| momar      | mbomba    | electromagnetism               |
+| momar      | mbomba    | bible and western culture      |
+| momar      | mbomba    | the prophets                   |
+| Nancy      | morris    | molecular biology              |
+| Nancy      | morris    | molecular biology              |
+| Nancy      | morris    | intro to financial accounting  |
+| Nancy      | morris    | operating systems              |
+| Nancy      | morris    | software engineering project   |
+| Nancy      | morris    | macroeconomics                 |
+| Nancy      | morris    | calculus 2                     |
+| Nancy      | morris    | design graphics                |
+| tal        | arbel     | genetics                       |
+| tal        | arbel     | consumer behavior              |
+| tal        | arbel     | structural engineering 2       |
+| tal        | arbel     | software engineering project   |
+| tal        | arbel     | behavioural economics          |
+| tal        | arbel     | underground economy            |
+| tal        | arbel     | calculus 1                     |
+| tal        | arbel     | probability                    |
+| tal        | arbel     | mechanics                      |
+| tal        | arbel     | cognitive development          |
+| teresa     | hurley    | evolution                      |
+| teresa     | hurley    | intro to business              |
+| teresa     | hurley    | structural engineering 2       |
+| teresa     | hurley    | topics in economic policy      |
+| teresa     | hurley    | statistics                     |
+| teresa     | hurley    | philosophy of mind             |
+| teresa     | hurley    | memory and brain               |
+| teresa     | hurley    | the gospels                    |
+| ursula     | franklin  | intro to business              |
+| ursula     | franklin  | intro to business              |
+| ursula     | franklin  | intro to financial accounting  |
+| ursula     | franklin  | dynamics                       |
+| ursula     | franklin  | calculus 1                     |
+| ursula     | franklin  | calculus 2                     |
+| ursula     | franklin  | calculus 2                     |
+| ursula     | franklin  | probability                    |
+| ursula     | franklin  | discrete mathematics           |
+| ursula     | franklin  | mechanics                      |
+| ursula     | franklin  | behavioral neuroscience        |
+| yang       | Yi        | financial management           |
+| yang       | Yi        | structural engineering 2       |
+| yang       | Yi        | design graphics                |
+| yang       | Yi        | intro to philosophy            |
+| yang       | Yi        | intro to moral philosophy      |
+| yang       | Yi        | behavioral neuroscience        |
+| yang       | Yi        | the prophets                   |
++------------+-----------+--------------------------------+
+174 rows in set (0.00 sec)
+
+----
+TEST 10: TEST PASSED
+TEST 10A: TEST PASSED
+
+
+--------------------------------------------------------------------------------
+
+**Test case 11: "a student should be able to re-enrol in a course if they have failed it"**
+
+** first test that they cannot enrol in the same CRN (since CRN describes the term and year a course is offered). We want this query to fail.
+
+** second test: see if a student can re-enrol in the class the following year (CRN here will be different) 
+----
+QUERY 1:
+
+INSERT INTO enrolment
+VALUES ('bus400W18', 'stud176522', NULL, 'in progress');
+
+----
+ERROR 1062 (23000): Duplicate entry 'bus400W18-stud176522' for key 'enrolment.PRIMARY'
+
+----
+TEST PASSED!!! We wanted to encounter an error 
+----
+
+----
+QUERY 2:
+
+INSERT INTO enrolment
+VALUES ('bus400W19', 'stud176522', NULL, 'in progress');
+
+--------------------------------------------------------------------------------
